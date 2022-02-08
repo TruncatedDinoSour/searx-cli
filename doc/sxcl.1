@@ -1,0 +1,56 @@
+.TH SXCL "1" "Febuary 2022" "Sxcl" "General Commands Manual"
+
+
+.SH NAME
+
+sxcl \- SearX CLI
+
+
+.SH SYNOPSIS
+
+.B sxcl
+[\fI\,QUERY\/\fR]
+
+
+.SH "CONFIG FILE"
+
+By default the config file is in
+.IR ~/.config/searx_cli.ini .
+It gets created automatically on first launch.
+
+The current config keys are:
+
+.TS
+tab (@);
+l lx.
+searx@T{
+    SearX instance config
+T}
+browser@T{
+    The browser config
+T}
+.TE
+
+
+.PP
+\fBSEARX\fR
+.br
+
+\fIinstance\fR \-\- The searx instance, it can take one formatting argument \-\- \fIquery\fR, for example \fIhttps://searx.xyz/search?q={query}\fR
+
+.PP
+\fBBROWSER\fR
+.br
+
+\fIcommand\fR \-\- The broser command to run, it can take one formatting argument \-\- \fIurl\fR, for example \fIlynx '{url}'\fR
+
+
+.SH AUTHOR
+
+Written by Ari Archer <ari@mail.ari-web.xyz>
+
+
+.SH "REPORTING BUGS"
+
+Report any bugs or feature requests to https://ari-web.xyz/gh/searx-cli issues
+

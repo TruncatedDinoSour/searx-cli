@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""searx-cli"""
+
+import os
+import sys
+import warnings
+from configparser import ConfigParser
+from urllib.parse import quote as url_encode
+
+from bs4 import BeautifulSoup
+from pyfzf import FzfPrompt
+from requests import Response
+from requests import get as get_page
+
+warnings.filterwarnings("error", category=Warning)
+
+CONFIG_DIR: str = os.path.expanduser("~/.config")
+CONFIG_FILE: str = os.path.join(CONFIG_DIR, "searx_cli.ini")
+
+DEFAULT_CONFIG: list[str] = [
+    "[searx]",
+    "instance = https://searx.xyz/search?q={query}",
+    "",
+    "[browser]",
+    "command = lynx '{url}'",
+    "",
+]
+
+
+def make_new_config() -> None:
+    """Make new config"""
+    print("Making new config")
+
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+
+    with open(CONFIG_FILE, "w", encoding="utf-8") as config_file:
+        config_file.write("\n".join(DEFAULT_CONFIG))
+
+
+def main() -> int:
+    """Entry/main function"""
+    if len(sys.argv) < 2:
+        sys.stderr.write("Required argument: query ...\n")
+        return 1
+
+    if not os.path.exists(CONFIG_FILE):
+        make_new_config()
+        return 0
+
+    config: ConfigParser = ConfigParser()
+    config.read(CONFIG_FILE)
+
+    page: Response = get_page(
+        config["searx"]["instance"].format(query=url_encode(" ".join(sys.argv[1:])))
+    )
+
+    if page.status_code != 200:
+        sys.stderr.write(
+            f"Failed to GET {page.url!r}, status code {page.status_code}\n"
+        )
+        return 1
+
+    soup: BeautifulSoup = BeautifulSoup(page.text, "html.parser")
+    results: list = soup.findAll(class_="result")
+
+    if not results:
+        sys.stderr.write("No results found\n")
+        return 1
+
+    url: str = FzfPrompt().prompt((result.a["href"] for result in results))[0]
+
+    if not url.strip():
+        sys.stderr.write("Empty url\n")
+        return 1
+
+    os.system(config["browser"]["command"].format(url=url))
+
+    return 0
+
+
+if __name__ == "__main__":
+    assert main.__annotations__.get("return") is int, "main() should return an integer"
+    try:
+        sys.exit(main())
+    except KeyError:
+        make_new_config()
+        sys.exit(1)

@@ -1,0 +1,5 @@
+configparser
+beautifulsoup4
+requests
+pyfzf
+
